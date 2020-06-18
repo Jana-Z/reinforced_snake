@@ -42,15 +42,16 @@ class AI_player():
         16,
         kernel_size=(3, 3),
         strides=(1, 1),
-        input_shape=(self.width, self.height, 1),
-        activation='relu'
+        input_shape=(2, self.width, self.height), 
+        activation='relu',
+        data_format='channels_first'
     ))
     model.add(Conv2D(
         32,
         kernel_size=(3, 3),
         strides=(1, 1),
         activation='relu',
-        # data_format='channels_first'
+        data_format='channels_first'
     ))
 
     # Dense layers.

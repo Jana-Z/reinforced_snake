@@ -7,7 +7,7 @@ width = 5
 height = 5
 episodes = 60000
 obstacles = 0
-input_dim = (1, width, height, 1)
+input_dims = (1, 2, width, height)
 snake_length = []
 action_state = 3   # 1 - Maintain direction; 2 - turn left; 3 - turn right
 num_last_frames = 2
@@ -16,11 +16,11 @@ num_last_frames = 2
 def convert_to_numbers(arr):
     converted_arr = []
     map_symbol = {
-        '.': 0,
-        '#': 4,
-        's': 3,
-        'S': 2,
-        'F': 1
+        '.': 0.,
+        '#': 4.,
+        's': 3.,
+        'S': 2.,
+        'F': 1.
     }
     for line in arr:
         converted_arr.append([
@@ -33,14 +33,14 @@ def train_snake():
 
     for e in range(episodes):
         board = Board(width, height, obstacles)
-        state = convert_to_numbers(board.get_board()) \
-            .reshape(input_dim)
+        state = np.concatenate((convert_to_numbers(board.get_board()), np.zeros((width,height)))) \
+            .reshape(input_dims)
         done = False
         reward = 0
         while not done:
             action = ai_player.act(state)
-
-            _, next_state, fruit_is_eaten, done = board.play_computer(action)
+            
+            previous_state, next_state, fruit_is_eaten, done = board.play_computer(action)
             if fruit_is_eaten:
                 reward = 1
             if done:
@@ -51,8 +51,11 @@ def train_snake():
                 print(f'Episode {e} , snake length = {snake_len}, e = {ai_player.epsilon}')
                 snake_length.append(snake_len)
 
-            next_state = convert_to_numbers(next_state) \
-                .reshape(input_dim)
+            next_state = convert_to_numbers(next_state) 
+            previous_state = convert_to_numbers(previous_state)
+
+
+            next_state = np.concatenate((next_state, previous_state)).reshape(input_dims)
 
             ai_player.memorize(state, action, reward, next_state, done)
             state = next_state

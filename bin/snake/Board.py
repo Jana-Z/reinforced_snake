@@ -8,7 +8,7 @@ class Board():
     self.width = width
     self.height = height
     self.snake = Snake((width//2, height//2), width, height)
-    self.previous_board = np.zeros((width,height))
+    self.previous_board = np.full((width,height), '.')
     self.obstacles = obstacles
     self.fruit = Fruit(width, height, [(width//2, height//2)], self.obstacles)
 
