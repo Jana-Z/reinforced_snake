@@ -26,7 +26,7 @@ class AI_player():
     self.gamma = gamma
     self.learning_rate = learning_rate
     self.model = self._build_model()
-    self.memory = deque(maxlen=2000)
+    self.memory = deque(maxlen=10000)
 
   def _build_model(self): 
     ''' initialise the model using self.learning_rate and 
@@ -37,6 +37,7 @@ class AI_player():
     # model.add(Dense(24, activation='relu'))
     # model.add(Dense(self.action_size, activation='softmax'))
     # model.compile(loss='mse',optimizer=Adam(lr=self.learning_rate))
+
     model.add(Conv2D(
         16,
         kernel_size=(3, 3),
@@ -79,6 +80,14 @@ class AI_player():
       recommended_move = np.argmax(self.model.predict(state)[0])
       return recommended_move
 
+  def save_model(self):
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights("model.h5")
+    print("Saved model to disk")
 
   def replay(self, batch_size):
     ''' Replay states of the memory as specified in batch_size.

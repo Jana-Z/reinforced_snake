@@ -9,10 +9,7 @@ class Board():
     self.height = height
     self.snake = Snake((width//2, height//2), width, height)
     self.previous_board = np.zeros((width,height))
-    if not obstacles:
-      self.obstacles = self._create_obstacles(width*height // 5)
-    else:
-      self.obstacles = obstacles
+    self.obstacles = obstacles
     self.fruit = Fruit(width, height, [(width//2, height//2)], self.obstacles)
 
   def _create_obstacles(self, n:int):
@@ -25,19 +22,20 @@ class Board():
     return obstacles
 
   def get_board(self):
-    current_board = np.zeros((self.width, self.height))
+    current_board = np.full((self.width, self.height), '.')
     fruit_pos = self.fruit.get_position()
-    current_board[fruit_pos] = 3
+    current_board[fruit_pos] = 'F'
     snake_pos = self.snake.get_position()
     for i in snake_pos:
-      current_board[i] = 1
-    for i in self.obstacles:
-      current_board[i] = -1
-    current_board[snake_pos[0]] = 2
+      current_board[i] = 's'
+    if self.obstacles:
+      for i in self.obstacles:
+        current_board[i] = '#'
+    current_board[snake_pos[0]] = 'S'
     return current_board
 
   def play_computer(self, action:int):
-    if action < 0 or action > 3:
+    if action < 0 or action > 2:
         print(f'Entered wrong action: {action}')
     result = self.snake.move(action, self.fruit.get_position(), self.obstacles)
     if result['eat_fruit']:
@@ -55,11 +53,12 @@ class Board():
     self.print_board()
     while True:
       move = int(input(f'Enter your move here:\n\
-        0 for up/1 for down/2 for right/3 for left'))
-      result = self.snake.move(move, self.fruit.get_position(), self.obstacles)
-      if result['game_over']:
-        print("Game over!")
-        break
-      elif result['eat_fruit']:
-        self.fruit.be_eaten(self.snake.get_position())
-      self.print_board()
+        0 for maintain direction/1 for turn left/2 for turn right'))
+      if 0 <= move <= 2:
+        result = self.snake.move(move, self.fruit.get_position(), self.obstacles)
+        if result['game_over']:
+          print("Game over!")
+          break
+        elif result['eat_fruit']:
+          self.fruit.be_eaten(self.snake.get_position(), self.obstacles)
+        self.print_board()

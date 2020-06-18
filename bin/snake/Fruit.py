@@ -10,8 +10,12 @@ class Fruit():
   def be_eaten(self, snake_position, obstacles):
     while True:
       self.position = (random.randint(0, self.max_width-1), random.randint(0, self.max_height-1))
-      if self.position not in snake_position and self.position not in obstacles:
-        break
+      if obstacles:
+        if self.position not in snake_position and self.position not in obstacles:
+            break
+      else:
+        if self.position not in snake_position:
+            break
 
   def get_position(self):
     return self.position

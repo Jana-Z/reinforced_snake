@@ -1,21 +1,40 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from rlAgent import AI_player
 from snake import Board
 
 width = 5
 height = 5
-episodes = 2000
-obstacles = [(1, 1)]
+episodes = 60000
+obstacles = 0
 input_dim = (1, width, height, 1)
+snake_length = []
+action_state = 3   # 1 - Maintain direction; 2 - turn left; 3 - turn right
+num_last_frames = 2
+# TODO make number variable
+
+def convert_to_numbers(arr):
+    converted_arr = []
+    map_symbol = {
+        '.': 0,
+        '#': 4,
+        's': 3,
+        'S': 2,
+        'F': 1
+    }
+    for line in arr:
+        converted_arr.append([
+            map_symbol[x] for x in line
+        ])
+    return np.array(converted_arr)
 
 def train_snake():
-    ai_player = AI_player(4, width, height, epsilon_decay=0.9995)
-
-    snake_length = []
+    ai_player = AI_player(action_state, width, height, epsilon_decay=0.99995)
 
     for e in range(episodes):
         board = Board(width, height, obstacles)
-        state = board.get_board().reshape(input_dim)
+        state = convert_to_numbers(board.get_board()) \
+            .reshape(input_dim)
         done = False
         reward = 0
         while not done:
@@ -28,11 +47,12 @@ def train_snake():
                 reward = -1
                 unique, counts = np.unique(board.get_board(), return_counts = True)
                 dictionary = dict(zip(unique, counts))
-                snake_len = dictionary[1]+1 if 1 in dictionary else 1
+                snake_len = dictionary['s']+1 if 's' in dictionary else 1
                 print(f'Episode {e} , snake length = {snake_len}, e = {ai_player.epsilon}')
                 snake_length.append(snake_len)
 
-            next_state = next_state.reshape(input_dim)
+            next_state = convert_to_numbers(next_state) \
+                .reshape(input_dim)
 
             ai_player.memorize(state, action, reward, next_state, done)
             state = next_state
@@ -44,7 +64,12 @@ def train_snake():
                 print('--------')
 
         ai_player.replay(35)
+    ai_player.save_model()
 
+def plot_progress():
+    plt.scatter(np.arange(0, len(snake_length)), snake_length)
+    plt.show()
 
 if __name__=='__main__':
     train_snake()
+    plot_progress()
