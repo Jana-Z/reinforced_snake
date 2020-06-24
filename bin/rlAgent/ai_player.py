@@ -81,14 +81,27 @@ class AI_player():
       recommended_move = np.argmax(self.model.predict(state)[0])
       return recommended_move
 
-  def save_model(self):
-    # serialize model to JSON
-    model_json = self.model.to_json()
-    with open("model.json", "w") as json_file:
-        json_file.write(model_json)
-    # serialize weights to HDF5
-    model.save_weights("model.h5")
-    print("Saved model to disk")
+  # def save_model(self):
+  #   # serialize model to JSON
+  #   model_json = self.model.to_json()
+  #   with open("model.json", "w") as json_file:
+  #       json_file.write(model_json)
+  #   # serialize weights to HDF5
+  #   model.save_weights("model.h5")
+  #   print("Saved model to disk")
+
+  def save_model(self, path):
+    self.model.save(path)
+    minibatch = np.array(random.sample(self.memory, 1)[0][0])
+    self.check_model(path,minibatch)
+
+  def load_model(self, path):
+    self.model = keras.models.load_model(path)
+
+  def check_model(self, path, test_input):
+    loaded_model = keras.models.load_model(path)
+    np.testing.assert_allclose(loaded_model.predict(test_input), self.model.predict(test_input))
+    print('model is ok')
 
   def replay(self, batch_size):
     ''' Replay states of the memory as specified in batch_size.

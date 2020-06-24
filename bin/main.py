@@ -2,10 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from rlAgent import AI_player
 from snake import Board
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 width = 5
 height = 5
-episodes = 60000
+episodes = 5 #60000
 obstacles = 0
 input_dims = (1, 2, width, height)
 snake_length = []
@@ -54,20 +57,21 @@ def train_snake():
             next_state = convert_to_numbers(next_state) 
             previous_state = convert_to_numbers(previous_state)
 
+            if e > episodes-10:
+                state_reshaped = next_state.reshape(width, height)
+                for i in state_reshaped:
+                    print(i)
+                print('--------')
 
             next_state = np.concatenate((next_state, previous_state)).reshape(input_dims)
 
             ai_player.memorize(state, action, reward, next_state, done)
             state = next_state
 
-            if e > episodes-10:
-                state_reshaped = state.reshape(width, height)
-                for i in state_reshaped:
-                    print(i)
-                print('--------')
+            
 
         ai_player.replay(35)
-    ai_player.save_model()
+    ai_player.save_model('./model')
 
 def plot_progress():
     plt.scatter(np.arange(0, len(snake_length)), snake_length)
@@ -75,4 +79,4 @@ def plot_progress():
 
 if __name__=='__main__':
     train_snake()
-    plot_progress()
+    # plot_progress()
