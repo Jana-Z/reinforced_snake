@@ -8,7 +8,7 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 width = 5
 height = 5
-episodes = 5 #60000
+episodes = 60000
 obstacles = 0
 input_dims = (1, 2, height, width)
 snake_length = []
@@ -31,7 +31,7 @@ def convert_to_numbers(arr):
         ])
     return np.array(converted_arr)
 
-def train_snake():
+def train_snake(show_pygame = False):
     ai_player = AI_player(action_state, width, height, epsilon_decay=0.99995)
 
     for e in range(episodes):
@@ -44,18 +44,21 @@ def train_snake():
             .reshape(input_dims)
         done = False
         reward = 0
+        total_reward = 0
         while not done:
             action = ai_player.act(state)
-            
-            previous_state, next_state, fruit_is_eaten, done = board.play_computer(action, True)
+        
+            previous_state, next_state, fruit_is_eaten, done = board.play_computer(action, show_pygame)
             if fruit_is_eaten:
+                total_reward += 1
                 reward = 1
             if done:
+                total_reward -= 1
                 reward = -1
                 unique, counts = np.unique(board.get_board(), return_counts = True)
                 dictionary = dict(zip(unique, counts))
                 snake_len = dictionary['s']+1 if 's' in dictionary else 1
-                print(f'Episode {e} , snake length = {snake_len}, e = {ai_player.epsilon}')
+                print(f'Episode {e}/{episodes}| Exploration {ai_player.epsilon} |  Fruits {snake_len-1} | Total reward {total_reward}')
                 snake_length.append(snake_len)
 
             next_state = convert_to_numbers(next_state) 
@@ -88,10 +91,6 @@ def plot_progress():
     plt.show()
 
 if __name__=='__main__':
-    # train_snake()
-    # plot_progress()
-    board = Board(width, height, obstacles)
-    for e in range(10):
-        board.play_computer(2, True)
-        board.play_computer(0, True)
-        board.play_computer(1, True)
+    train_snake()
+    #plot_progress()
+    

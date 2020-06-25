@@ -4,14 +4,13 @@ import pygame
 from .Snake import Snake
 from .Fruit import Fruit
 
-pygame.init()
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 102)
 BLACK = (0, 0, 0)
 RED = (213, 50, 80)
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
-BLOCK_PIXELS = 50
+BLOCK_PIXELS = 20
 
 class Board():
   def __init__(self, width, height, obstacles=None):
@@ -21,13 +20,9 @@ class Board():
     self.previous_board = np.full((width,height), '.')
     self.obstacles = obstacles
     self.fruit = Fruit(width, height, [(width//2, height//2)], self.obstacles)
-    self.score_font = pygame.font.SysFont("arialttf", 35)
-    flags = pygame.DOUBLEBUF | pygame.HWSURFACE
-    self.dis = pygame.display.set_mode((width*BLOCK_PIXELS, height*BLOCK_PIXELS), flags)
-    self.dis.set_alpha(None)
-    pygame.display.set_caption('Snake Game by Rita and Jana')
-    pygame.event.pump()
-    events = pygame.event.get()
+
+    self.game_started = False
+    
 
   def _create_obstacles(self, n:int):
     obstacles = []
@@ -52,13 +47,24 @@ class Board():
     return current_board
 
   def render_pygame(self):
+    if not game_started:
+      self.game_started = True
+      pygame.init()
+      self.score_font = pygame.font.SysFont("arialttf", 35)
+      flags = pygame.DOUBLEBUF | pygame.HWSURFACE
+      self.dis = pygame.display.set_mode((width*BLOCK_PIXELS, height*BLOCK_PIXELS), flags)
+      self.dis.set_alpha(None)
+      pygame.display.set_caption('Snake Game by Rita and Jana')
+      pygame.event.pump()
+      events = pygame.event.get()
+
     pygame.event.pump()
     events = pygame.event.get()
-    self.dis.fill(BLUE)
+    self.dis.fill(WHITE)
     pygame.display.set_caption('Current score:'+ str(len(self.snake.get_position())))
     fruit_position = self.fruit.get_position()
     pygame.draw.rect(
-      self.dis, GREEN, 
+      self.dis, RED, 
       [fruit_position[0]*BLOCK_PIXELS, fruit_position[1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS])
     for pos in self.snake.get_position():
       pygame.draw.rect(
@@ -66,7 +72,7 @@ class Board():
         BLACK,
         [pos[0]*BLOCK_PIXELS, pos[1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS])
     pygame.display.update()
-    pygame.time.wait(200)
+    pygame.time.wait(50)
 
   def play_computer(self, action:int, showPygame=False):
     if action < 0 or action > 2:
