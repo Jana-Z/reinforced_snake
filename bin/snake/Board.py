@@ -11,7 +11,7 @@ BLACK = (0, 0, 0)
 RED = (213, 50, 80)
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
-BLOCK_PIXELS = 100
+BLOCK_PIXELS = 50
 
 class Board():
   def __init__(self, width, height, obstacles=None):
@@ -55,18 +55,18 @@ class Board():
     pygame.event.pump()
     events = pygame.event.get()
     self.dis.fill(BLUE)
-    score_msg = self.score_font.render("Current score: "
-        + str(len(self.snake.get_position())),
-        True, YELLOW)
-    self.dis.blit(score_msg, [0, 0])
-    pygame.draw.rect(self.dis, GREEN, [*self.fruit.get_position(), BLOCK_PIXELS, BLOCK_PIXELS])
+    pygame.display.set_caption('Current score:'+ str(len(self.snake.get_position())))
+    fruit_position = self.fruit.get_position()
+    pygame.draw.rect(
+      self.dis, GREEN, 
+      [fruit_position[0]*BLOCK_PIXELS, fruit_position[1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS])
     for pos in self.snake.get_position():
       pygame.draw.rect(
         self.dis,
         BLACK,
-        [pos[0], pos[1], BLOCK_PIXELS, BLOCK_PIXELS])
+        [pos[0]*BLOCK_PIXELS, pos[1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS])
     pygame.display.update()
-    pygame.time.wait(500)
+    pygame.time.wait(200)
 
   def play_computer(self, action:int, showPygame=False):
     if action < 0 or action > 2:
