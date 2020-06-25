@@ -10,7 +10,7 @@ width = 5
 height = 5
 episodes = 5 #60000
 obstacles = 0
-input_dims = (1, 2, width, height)
+input_dims = (1, 2, height, width)
 snake_length = []
 action_state = 3   # 1 - Maintain direction; 2 - turn left; 3 - turn right
 num_last_frames = 2
@@ -36,14 +36,18 @@ def train_snake():
 
     for e in range(episodes):
         board = Board(width, height, obstacles)
-        state = np.concatenate((convert_to_numbers(board.get_board()), np.zeros((width,height)))) \
+        state = \
+            np.concatenate((
+                convert_to_numbers(board.get_board()),
+                np.zeros((width,height))
+            )) \
             .reshape(input_dims)
         done = False
         reward = 0
         while not done:
             action = ai_player.act(state)
             
-            previous_state, next_state, fruit_is_eaten, done = board.play_computer(action)
+            previous_state, next_state, fruit_is_eaten, done = board.play_computer(action, True)
             if fruit_is_eaten:
                 reward = 1
             if done:
@@ -63,7 +67,13 @@ def train_snake():
                     print(i)
                 print('--------')
 
-            next_state = np.concatenate((next_state, previous_state)).reshape(input_dims)
+            next_state = np.concatenate((next_state, previous_state)) \
+                .reshape(input_dims)
+
+            # next_state =  tf.transpose(
+            #     np.concatenate((next_state, previous_state)).reshape(input_dims),
+            #     [0, 2, 3, 1]
+            # )
 
             ai_player.memorize(state, action, reward, next_state, done)
             state = next_state
@@ -78,5 +88,10 @@ def plot_progress():
     plt.show()
 
 if __name__=='__main__':
-    train_snake()
+    # train_snake()
     # plot_progress()
+    board = Board(width, height, obstacles)
+    for e in range(10):
+        board.play_computer(2, True)
+        board.play_computer(0, True)
+        board.play_computer(1, True)

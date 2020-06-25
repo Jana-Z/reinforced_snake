@@ -1,6 +1,7 @@
 from collections import deque
 import random
 import numpy as np
+import tensorflow as tf
 import keras
 from keras.models import Sequential
 from keras.layers import Conv2D, Dense, Flatten
@@ -80,15 +81,6 @@ class AI_player():
     else:
       recommended_move = np.argmax(self.model.predict(state)[0])
       return recommended_move
-
-  # def save_model(self):
-  #   # serialize model to JSON
-  #   model_json = self.model.to_json()
-  #   with open("model.json", "w") as json_file:
-  #       json_file.write(model_json)
-  #   # serialize weights to HDF5
-  #   model.save_weights("model.h5")
-  #   print("Saved model to disk")
 
   def save_model(self, path):
     self.model.save(path)

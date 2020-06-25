@@ -1,7 +1,17 @@
 import random
 import numpy as np
+import pygame
 from .Snake import Snake
 from .Fruit import Fruit
+
+pygame.init()
+WHITE = (255, 255, 255)
+YELLOW = (255, 255, 102)
+BLACK = (0, 0, 0)
+RED = (213, 50, 80)
+GREEN = (0, 255, 0)
+BLUE = (50, 153, 213)
+BLOCK_PIXELS = 100
 
 class Board():
   def __init__(self, width, height, obstacles=None):
@@ -11,6 +21,13 @@ class Board():
     self.previous_board = np.full((width,height), '.')
     self.obstacles = obstacles
     self.fruit = Fruit(width, height, [(width//2, height//2)], self.obstacles)
+    self.score_font = pygame.font.SysFont("arialttf", 35)
+    flags = pygame.DOUBLEBUF | pygame.HWSURFACE
+    self.dis = pygame.display.set_mode((width*BLOCK_PIXELS, height*BLOCK_PIXELS), flags)
+    self.dis.set_alpha(None)
+    pygame.display.set_caption('Snake Game by Rita and Jana')
+    pygame.event.pump()
+    events = pygame.event.get()
 
   def _create_obstacles(self, n:int):
     obstacles = []
@@ -34,14 +51,45 @@ class Board():
     current_board[snake_pos[0]] = 'S'
     return current_board
 
-  def play_computer(self, action:int):
+  def render_pygame(self):
+    pygame.event.pump()
+    events = pygame.event.get()
+    self.dis.fill(BLUE)
+    score_msg = self.score_font.render("Current score: "
+        + str(len(self.snake.get_position())),
+        True, YELLOW)
+    self.dis.blit(score_msg, [0, 0])
+    pygame.draw.rect(self.dis, GREEN, [*self.fruit.get_position(), BLOCK_PIXELS, BLOCK_PIXELS])
+    for pos in self.snake.get_position():
+      pygame.draw.rect(
+        self.dis,
+        BLACK,
+        [pos[0], pos[1], BLOCK_PIXELS, BLOCK_PIXELS])
+    pygame.display.update()
+    pygame.time.wait(500)
+
+  def play_computer(self, action:int, showPygame=False):
     if action < 0 or action > 2:
         print(f'Entered wrong action: {action}')
+
+    # Show score, fruit and snake before move
+    if showPygame:
+      self.render_pygame()
+
     result = self.snake.move(action, self.fruit.get_position(), self.obstacles)
     if result['eat_fruit']:
         self.fruit.be_eaten(self.snake.get_position(), self.obstacles)
     local_previous_board = self.previous_board
     self.previous_board = self.get_board()
+
+    # Show score, fruit and snake after move
+    if showPygame:
+      if result['game_over']:
+        score_msg = self.score_font.render("Lost!", True, RED)
+        pygame.quit()
+      else:
+        self.render_pygame()
+
     return (local_previous_board, self.get_board(), result['eat_fruit'], result['game_over'])
 
   def print_board(self):
