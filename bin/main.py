@@ -66,6 +66,9 @@ def train_snake(show_pygame = False):
                 history['fruits'].append(snake_len-1)
                 history['reward'].append(total_reward)
                 history['exploration'].append(ai_player.epsilon)
+            else:
+                reward = -0.05
+                total_reward -= 0.05
 
             next_state = convert_to_numbers(next_state) 
             previous_state = convert_to_numbers(previous_state)
