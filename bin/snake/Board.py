@@ -47,12 +47,12 @@ class Board():
     return current_board
 
   def render_pygame(self):
-    if not game_started:
+    if not self.game_started:
       self.game_started = True
       pygame.init()
       self.score_font = pygame.font.SysFont("arialttf", 35)
       flags = pygame.DOUBLEBUF | pygame.HWSURFACE
-      self.dis = pygame.display.set_mode((width*BLOCK_PIXELS, height*BLOCK_PIXELS), flags)
+      self.dis = pygame.display.set_mode((self.width*BLOCK_PIXELS, self.height*BLOCK_PIXELS), flags)
       self.dis.set_alpha(None)
       pygame.display.set_caption('Snake Game by Rita and Jana')
       pygame.event.pump()
