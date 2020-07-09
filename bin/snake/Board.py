@@ -20,10 +20,9 @@ class Board():
     self.previous_board = np.full((width,height), '.')
     self.obstacles = obstacles
     self.fruit = Fruit(width, height, [(width//2, height//2)], self.obstacles)
-
+    self.dst = self.calculate_dst()
     self.game_started = False
     
-
   def _create_obstacles(self, n:int):
     obstacles = []
     while len(obstacles) < n:
@@ -72,7 +71,7 @@ class Board():
         BLACK,
         [pos[0]*BLOCK_PIXELS, pos[1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS])
     pygame.display.update()
-    pygame.time.wait(50)
+    pygame.time.wait(10)
 
   def play_computer(self, action:int, showPygame=False):
     if action < 0 or action > 2:
@@ -96,13 +95,31 @@ class Board():
       else:
         self.render_pygame()
 
-    return (local_previous_board, self.get_board(), result['eat_fruit'], result['game_over'])
+    # check whether snake moves towards the fruit
+    dst = self.calculate_dst()
+    right_orientation = dst < self.dst  # check whether distance now is smaller than before
+    self.dst = dst
+    return (local_previous_board, self.get_board(), result['eat_fruit'], result['game_over'], right_orientation)
+
+  def calculate_dst(self):
+    '''calculating the distance between the head of the snake
+    and the position of the fruit.
+    used to give a reward in ../main.py
+    '''
+    fruit_pos = self.fruit.get_position()
+    snake_head_pos = self.snake.get_position()[0]
+    dst_fruit_snake = np.sqrt(
+      ((fruit_pos[0] - snake_head_pos[0])**2)
+      + ((fruit_pos[1] - snake_head_pos[1])**2)
+    )
+    return dst_fruit_snake
 
   def print_board(self):
       board = self.get_board()
       for line in board:
           print(line, sep='|')
 
+  # NOT WORKING PROPERLY
   def play_human(self):
     self.print_board()
     while True:

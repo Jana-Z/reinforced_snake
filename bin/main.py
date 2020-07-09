@@ -8,7 +8,6 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 width = 5
 height = 5
-episodes = 60000
 obstacles = 0
 input_dims = (1, 2, height, width)
 history = {
@@ -17,8 +16,7 @@ history = {
     'exploration': []
 }
 action_state = 3   # 1 - Maintain direction; 2 - turn left; 3 - turn right
-num_last_frames = 2
-# TODO make number variable
+num_last_frames = 2 # TODO make number variable
 
 def convert_to_numbers(arr):
     converted_arr = []
@@ -35,8 +33,25 @@ def convert_to_numbers(arr):
         ])
     return np.array(converted_arr)
 
-def train_snake(show_pygame = False):
-    ai_player = AI_player(action_state, width, height, epsilon_decay=0.99995)
+def train_snake(
+        show_pygame=False,
+        episodes=60000,
+        epsilon_decay=0.99995,
+        epsilon=1., 
+        min_epsilon=0.01,
+        gamma=0.9,
+        learning_rate=0.01
+    ):
+    ai_player = AI_player(
+        action_state,
+        width,
+        height,
+        epsilon_decay=epsilon_decay,
+        epsilon=epsilon,
+        min_epsilon=min_epsilon,
+        gamma=0.9,
+        learning_rate=0.01
+    )
 
     for e in range(episodes):
         board = Board(width, height, obstacles)
@@ -52,12 +67,11 @@ def train_snake(show_pygame = False):
         while not done:
             action = ai_player.act(state)
         
-            previous_state, next_state, fruit_is_eaten, done = board.play_computer(action, show_pygame)
+            previous_state, next_state, fruit_is_eaten, done, right_orientation = board.play_computer(action, show_pygame)
+
             if fruit_is_eaten:
-                total_reward += 1
                 reward = 1
             if done:
-                total_reward -= 1
                 reward = -1
                 unique, counts = np.unique(board.get_board(), return_counts = True)
                 dictionary = dict(zip(unique, counts))
@@ -67,34 +81,23 @@ def train_snake(show_pygame = False):
                 history['reward'].append(total_reward)
                 history['exploration'].append(ai_player.epsilon)
             else:
-                reward = -0.05
-                total_reward -= 0.05
+                reward = +0.05 if right_orientation else -0.05
+            total_reward += reward
 
             next_state = convert_to_numbers(next_state) 
             previous_state = convert_to_numbers(previous_state)
 
-            if e > episodes-10:
-                state_reshaped = next_state.reshape(width, height)
-                for i in state_reshaped:
-                    print(i)
-                print('--------')
-
             next_state = np.concatenate((next_state, previous_state)) \
                 .reshape(input_dims)
-
-            # next_state =  tf.transpose(
-            #     np.concatenate((next_state, previous_state)).reshape(input_dims),
-            #     [0, 2, 3, 1]
-            # )
 
             ai_player.memorize(state, action, reward, next_state, done)
             state = next_state
 
-        ai_player.replay(100)
+        ai_player.replay(400)
     ai_player.save_model('./model')
 
 def plot_history():
-    for label, data in zip(history):
+    for label, data in history.items():
         plt.line(np.arange(0, len(data)), data)
         plt.title(f'label: {label}')
         plt.show()
@@ -124,7 +127,7 @@ def load_show_agent(path, num_games=1):
 
 
 if __name__=='__main__':
-    # train_snake()
-    #plot_progress()
+    train_snake(episodes=50, epsilon_decay=0.8)
+    plot_history()
     load_show_agent('./model', 5)
     
