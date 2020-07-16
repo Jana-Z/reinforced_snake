@@ -3,20 +3,22 @@ import matplotlib.pyplot as plt
 from rlAgent import AI_player
 from snake import Board
 import os
+from collections import deque
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 width = 5
 height = 5
 obstacles = 0
-input_dims = (1, 2, height, width)
+num_last_frames = 4
+input_dims = (1, num_last_frames, height, width)
 history = {
     'fruits': [],
     'reward': [],
     'exploration': []
 }
 action_state = 3   # 1 - Maintain direction; 2 - turn left; 3 - turn right
-num_last_frames = 2 # TODO make number variable
+
 
 def convert_to_numbers(arr):
     converted_arr = []
@@ -46,6 +48,7 @@ def train_snake(
         action_state,
         width,
         height,
+        num_last_frames,
         epsilon_decay=epsilon_decay,
         epsilon=epsilon,
         min_epsilon=min_epsilon,
@@ -54,13 +57,12 @@ def train_snake(
     )
 
     for e in range(episodes):
-        board = Board(width, height, obstacles)
-        state = \
-            np.concatenate((
-                convert_to_numbers(board.get_board()),
-                np.zeros((width,height))
-            )) \
-            .reshape(input_dims)
+        board = Board(width, height, obstacles, num_last_frames=num_last_frames)
+
+        state = deque(np.zeros((width, height)) for x in range(num_last_frames-1))
+        state.appendleft(convert_to_numbers(board.get_board()))
+        state = np.array(state).reshape(input_dims)
+
         done = False
         reward = 0
         total_reward = 0
@@ -84,21 +86,20 @@ def train_snake(
                 reward = +0.05 if right_orientation else -0.05
             total_reward += reward
 
-            next_state = convert_to_numbers(next_state) 
-            previous_state = convert_to_numbers(previous_state)
-
-            next_state = np.concatenate((next_state, previous_state)) \
-                .reshape(input_dims)
+            next_state = np.array([convert_to_numbers(s) for s in next_state]).reshape(input_dims)
+            previous_state = np.array([convert_to_numbers(s) for s in previous_state]).reshape(input_dims)
 
             ai_player.memorize(state, action, reward, next_state, done)
             state = next_state
 
         ai_player.replay(400)
-    ai_player.save_model('./model')
+        if e%1000 == 0:
+            ai_player.save_model('./model')
+            print('saving the model...')
 
 def plot_history():
     for label, data in history.items():
-        plt.line(np.arange(0, len(data)), data)
+        plt.plot(np.arange(0, len(data)), data)
         plt.title(f'label: {label}')
         plt.show()
 
@@ -127,7 +128,7 @@ def load_show_agent(path, num_games=1):
 
 
 if __name__=='__main__':
-    train_snake(episodes=50, epsilon_decay=0.8)
+    train_snake()
     plot_history()
     load_show_agent('./model', 5)
     

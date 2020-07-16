@@ -3,6 +3,7 @@ import numpy as np
 import pygame
 from .Snake import Snake
 from .Fruit import Fruit
+from collections import deque
 
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 102)
@@ -13,15 +14,16 @@ BLUE = (50, 153, 213)
 BLOCK_PIXELS = 20
 
 class Board():
-  def __init__(self, width, height, obstacles=None):
+  def __init__(self, width, height, obstacles=None, num_last_frames = 2):
     self.width = width
     self.height = height
     self.snake = Snake((width//2, height//2), width, height)
-    self.previous_board = np.full((width,height), '.')
+    self.previous_board = deque(np.full((width, height), '.') for x in range(num_last_frames))
     self.obstacles = obstacles
     self.fruit = Fruit(width, height, [(width//2, height//2)], self.obstacles)
     self.dst = self.calculate_dst()
     self.game_started = False
+    self.num_last_frames = num_last_frames
     
   def _create_obstacles(self, n:int):
     obstacles = []
@@ -84,22 +86,24 @@ class Board():
     result = self.snake.move(action, self.fruit.get_position(), self.obstacles)
     if result['eat_fruit']:
         self.fruit.be_eaten(self.snake.get_position(), self.obstacles)
-    local_previous_board = self.previous_board
-    self.previous_board = self.get_board()
 
     # Show score, fruit and snake after move
     if showPygame:
       if result['game_over']:
-        score_msg = self.score_font.render("Lost!", True, RED)
         pygame.quit()
       else:
         self.render_pygame()
+
+    local_previous_board = self.previous_board
+
+    self.previous_board.popleft()
+    self.previous_board.append(self.get_board())
 
     # check whether snake moves towards the fruit
     dst = self.calculate_dst()
     right_orientation = dst < self.dst  # check whether distance now is smaller than before
     self.dst = dst
-    return (local_previous_board, self.get_board(), result['eat_fruit'], result['game_over'], right_orientation)
+    return (local_previous_board, self.previous_board, result['eat_fruit'], result['game_over'], right_orientation)
 
   def calculate_dst(self):
     '''calculating the distance between the head of the snake

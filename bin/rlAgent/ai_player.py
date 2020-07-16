@@ -12,6 +12,7 @@ class AI_player():
         action_size:int,
         width:int,
         height:int,
+        num_last_frames:int,
         epsilon=1., 
         min_epsilon=0.01,
         epsilon_decay=0.995,
@@ -20,6 +21,7 @@ class AI_player():
     ):
     self.width = width
     self.height = height
+    self.num_last_frames = num_last_frames
     self.action_size = action_size
     self.epsilon = epsilon
     self.min_epsilon = min_epsilon
@@ -34,16 +36,12 @@ class AI_player():
     self.state_size as input dimension, self.action_size as output dimension
     '''
     model = Sequential()
-    # model.add(Dense(24, input_shape = (self.width*self.height,), activation='relu'))
-    # model.add(Dense(24, activation='relu'))
-    # model.add(Dense(self.action_size, activation='softmax'))
-    # model.compile(loss='mse',optimizer=Adam(lr=self.learning_rate))
-
+  
     model.add(Conv2D(
         16,
         kernel_size=(3, 3),
         strides=(1, 1),
-        input_shape=(2, self.width, self.height), 
+        input_shape=(self.num_last_frames, self.width, self.height), 
         activation='relu',
         data_format='channels_first'
     ))
