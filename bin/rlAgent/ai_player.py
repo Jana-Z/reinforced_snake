@@ -1,5 +1,5 @@
-from collections import deque
 import random
+from collections import deque
 import numpy as np
 import tensorflow as tf
 import keras
@@ -9,9 +9,8 @@ from keras.optimizers import Adam
 
 class AI_player():
   def __init__(self,
-        action_size:int,
-        width:int,
-        height:int,
+        dims,
+        action_size,
         num_last_frames:int,
         epsilon=1., 
         min_epsilon=0.01,
@@ -19,10 +18,9 @@ class AI_player():
         gamma=0.9,
         learning_rate=0.01
     ):
-    self.width = width
-    self.height = height
+    self.width, self.height = dims
+    self.action_size = action_size  # = 3
     self.num_last_frames = num_last_frames
-    self.action_size = action_size
     self.epsilon = epsilon
     self.min_epsilon = min_epsilon
     self.epsilon_decay = epsilon_decay
@@ -32,11 +30,12 @@ class AI_player():
     self.memory = deque(maxlen=10000)
 
   def _build_model(self): 
-    ''' initialise the model using self.learning_rate and 
+    ''' Initialise the model using self.learning_rate and 
     self.state_size as input dimension, self.action_size as output dimension
     '''
     model = Sequential()
-  
+
+    # Convolutional layers
     model.add(Conv2D(
         16,
         kernel_size=(3, 3),
@@ -53,7 +52,7 @@ class AI_player():
         data_format='channels_first'
     ))
 
-    # Dense layers.
+    # Dense layers
     model.add(Flatten())
     model.add(Dense(256, activation='relu'))
     model.add(Dense(self.action_size, activation='relu'))
@@ -64,7 +63,7 @@ class AI_player():
     return model
 
   def memorize(self, state, action, reward, next_state, done):
-    ''' push the state, action, reward, next_state and done into the memory.
+    ''' Push the state, action, reward, next_state and done into the memory.
     Used for replay later.
     '''
     self.memory.append((state, action, reward, next_state, done))
@@ -75,26 +74,37 @@ class AI_player():
     is going to be chosen by the NN
     '''
     if np.random.rand() < self.epsilon:
-      return np.random.randint(0, self.action_size-1)
+      move = np.random.randint(0, self.action_size)
     else:
-      recommended_move = np.argmax(self.model.predict(state)[0])
-      return recommended_move
+      move = np.argmax(self.model.predict(state)[0])
+    return move
 
   def save_model(self, path):
+    ''' Saves self.model at the given path.
+    Checks whether saving worked using one sample.
+    '''
     self.model.save(path)
     minibatch = np.array(random.sample(self.memory, 1)[0][0])
-    self.check_model(path,minibatch)
+    self.check_model(path, minibatch)
 
   def load_model(self, path):
+    ''' Sets self.model to a model at the given path.
+    '''
     self.model = keras.models.load_model(path)
 
   def check_model(self, path, test_input):
+    ''' Compares self.model and the model at the given path.
+    Checks for equal predictions.
+    '''
     loaded_model = keras.models.load_model(path)
-    np.testing.assert_allclose(loaded_model.predict(test_input), self.model.predict(test_input))
+    np.testing.assert_allclose(
+      loaded_model.predict(test_input),
+      self.model.predict(test_input)
+    )
     print('model is ok')
 
   def replay(self, batch_size):
-    ''' Replay states of the memory as specified in batch_size.
+    ''' Replay states of the memory as specified in batch_size
     '''
     if batch_size > len(self.memory):
       batch_size = len(self.memory)

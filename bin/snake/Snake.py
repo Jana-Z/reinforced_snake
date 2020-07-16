@@ -21,9 +21,11 @@ class Snake():
     self.direction = 0  # index in DIRECTIONS_ARR
 
   def move(self, move:int, fruit_position:tuple, obstacles:list):
-    """ move is a number (0, 1 or 2) where 0 is maintain direction,
-        1 is turn_left and 2 is turn_right
-    """
+    ''' Move is a number (0, 1 or 2) where
+        0 is maintain direction,
+        1 is turn_left
+        2 is turn_right
+    '''
     new_head = self.position[0]
     self.direction = (self.direction + SNAKE_MOVES[move])%len(DIRECTIONS)
     new_head = tuple(map(operator.add,
