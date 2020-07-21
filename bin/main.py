@@ -22,7 +22,7 @@ def train_snake(
         num_last_frames=4,
         episodes=60000,
         epsilon_decay=0.99995,
-        epsilon=1., 
+        epsilon=1.,
         min_epsilon=0.01,
         gamma=0.9,
         learning_rate=0.01,
@@ -101,6 +101,8 @@ def train_snake(
     return history
 
 if __name__=='__main__':
-    hist = train_snake()
-    plot_history(hist)
+
+    # hist = train_snake(show_pygame=True, episodes=20, epsilon_decay=0.9999)
+    # plot_history(hist)
+    BOARD.set_num_last_frames(4)
     load_show_agent('./model', BOARD, 5)

@@ -11,7 +11,13 @@ def load_show_agent(path, board, num_games=1):
         Only works on mac.
     '''
     input_dims = (1, board.get_num_last_frames(), *board.get_dims()) 
-    ai_player = AI_player(board.get_dims(), board.get_action_size(), board.get_num_last_frames(), epsilon=0, min_epsilon=0)
+    ai_player = AI_player(
+        board.get_dims(),
+        board.get_action_size(),
+        board.get_num_last_frames(),
+        epsilon=0,
+        min_epsilon=0
+    )
     ai_player.load_model(path)
     for i in range(num_games):
         state = deque(np.zeros(board.get_dims()) for x in range(board.get_num_last_frames()-1))
@@ -20,6 +26,7 @@ def load_show_agent(path, board, num_games=1):
         done = False
 
         while not done:
+            print(state)
             action = ai_player.act(state)
             next_state, _, done, __ = board.play_computer(action, True)
             next_state = np.array([convert_to_numbers(s) for s in next_state]).reshape(input_dims)

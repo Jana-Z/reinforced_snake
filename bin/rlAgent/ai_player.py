@@ -9,8 +9,8 @@ from keras.optimizers import Adam
 
 class AI_player():
   def __init__(self,
-        dims,
-        action_size,
+        dims:tuple,
+        action_size:int,
         num_last_frames:int,
         epsilon=1., 
         min_epsilon=0.01,
