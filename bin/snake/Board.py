@@ -15,7 +15,7 @@ BLUE = (50, 153, 213)
 BLOCK_PIXELS = 20
 
 class Board():
-  def __init__(self, width, height, obstacles=None, num_last_frames=2):
+  def __init__(self, width, height, obstacles=None, num_last_frames=4):
     self.width = width
     self.height = height
     self.obstacles = obstacles
@@ -84,7 +84,7 @@ class Board():
     pygame.event.pump()
     events = pygame.event.get()
     self.dis.fill(WHITE)
-    pygame.display.set_caption(f'Current score: {len(self.snake.get_position())}')
+    pygame.display.set_caption(str(self.dst))
     fruit_position = self.fruit.get_position()
     pygame.draw.rect(
       self.dis, RED, 
@@ -96,27 +96,26 @@ class Board():
         BLACK,
         [pos[0]*BLOCK_PIXELS, pos[1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS]
       )
+    pygame.draw.rect(
+      self.dis, GREEN, 
+      [self.snake.get_position()[0][0]*BLOCK_PIXELS, self.snake.get_position()[0][1]*BLOCK_PIXELS, BLOCK_PIXELS, BLOCK_PIXELS]
+    )
+
     pygame.display.update()
-    pygame.time.wait(10)
+    pygame.time.wait(1000)
 
   def play_computer(self, action:int, showPygame=False):
     if action < 0 or action > 2:
         print(f'Entered wrong action: {action}')
+        return
 
     # Show score, fruit and snake before move
-    if showPygame:
+    if showPygame and not self.game_started:
       self.render_pygame()
 
     result = self.snake.move(action, self.fruit.get_position(), self.obstacles)
     if result['eat_fruit']:
         self.fruit.be_eaten(self.snake.get_position(), self.obstacles)
-
-    # Show score, fruit and snake after move
-    if showPygame:
-      if result['game_over']:
-        pygame.quit()
-      else:
-        self.render_pygame()
 
     self.previous_frames.popleft()
     self.previous_frames.append(self.get_board())
@@ -125,6 +124,13 @@ class Board():
     dst = self.calculate_dst()
     headed_towards_fruit = dst < self.dst  # check whether distance now is smaller than before
     self.dst = dst
+
+     # Show score, fruit and snake after move
+    if showPygame:
+      if result['game_over']:
+        pygame.quit()
+      else:
+        self.render_pygame()
 
     return self.previous_frames, result['eat_fruit'], result['game_over'], headed_towards_fruit
 

@@ -19,9 +19,9 @@ BOARD = Board(WIDTH, HEIGHT, OBSTACLES)
 
 def train_snake(
         show_pygame=False,
-        num_last_frames=4,
+        num_last_frames=1,
         episodes=60000,
-        epsilon_decay=0.99995,
+        epsilon_phase_size=0.5,
         epsilon=1.,
         min_epsilon=0.01,
         gamma=0.9,
@@ -32,6 +32,9 @@ def train_snake(
         show_pygame:    the game is being plotted as a pygame (only mac)
         num_last_frames: defines the number of how many frames should be 
             in one state
+        epsilon phase size:    percentage of the training process 
+                at which exploration rate should reach its minimum 
+    
     Returns:
         history:        a record of the training
     '''
@@ -48,11 +51,11 @@ def train_snake(
         BOARD.get_dims(),
         BOARD.get_action_size(),
         num_last_frames,
-        epsilon_decay=epsilon_decay,
         epsilon=epsilon,
         min_epsilon=min_epsilon,
         gamma=0.9,
-        learning_rate=0.01
+        learning_rate=0.01,
+        epsilon_decay= ((epsilon - min_epsilon) / (episodes * epsilon_phase_size))
     )
 
     for e in range(episodes):
@@ -62,28 +65,30 @@ def train_snake(
 
         done = False
         reward = 0
-        total_reward = 0
+        # total_reward = 0
 
         while not done:
 
             action = ai_player.act(state)
             next_state, fruit_is_eaten, done, headed_towards_fruit = BOARD.play_computer(action, show_pygame)
-
+            
             if fruit_is_eaten:
-                reward = 1
+                reward += 1    
             if done:
-                reward = -1
                 unique, counts = np.unique(BOARD.get_board(), return_counts=True)
                 dictionary = dict(zip(unique, counts))
                 snake_len = dictionary['s'] + 1 if 's' in dictionary else 1
-                print(f'Episode {e}/{episodes}| Exploration {ai_player.epsilon} |  Fruits {snake_len-1} | Total reward {total_reward}')
+                print(f'Episode {e}/{episodes}| Exploration {ai_player.epsilon} |  Fruits {snake_len-1} | Total reward {reward}')
                 history['fruits'].append(snake_len-1)
-                history['reward'].append(total_reward)
+                history['reward'].append(reward)
                 history['exploration'].append(ai_player.epsilon)
-            else:
-                reward = +0.05 if headed_towards_fruit else -0.05
 
-            total_reward += reward
+                reward += -1
+            # else:
+            #     reward = reward+0.05 if headed_towards_fruit else reward-0.05
+
+            # total_reward = reward
+
             next_state = np.array([convert_to_numbers(s) for s in next_state])\
                 .reshape(input_dims)
             ai_player.memorize(state, action, reward, next_state, done)
@@ -94,7 +99,7 @@ def train_snake(
         ai_player.replay(400)
 
         # Save every 1000 episodes
-        if e%1000 == 0:
+        if e%100 == 0:
             ai_player.save_model('./model')
             print('saving the model...')
 
@@ -102,7 +107,7 @@ def train_snake(
 
 if __name__=='__main__':
 
-    # hist = train_snake(show_pygame=True, episodes=20, epsilon_decay=0.9999)
-    # plot_history(hist)
+    hist = train_snake(show_pygame=False, episodes=30000)
+    plot_history(hist)
     BOARD.set_num_last_frames(4)
-    load_show_agent('./model', BOARD, 5)
+    # load_show_agent('./model', BOARD, 5)

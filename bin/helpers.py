@@ -34,18 +34,19 @@ def load_show_agent(path, board, num_games=1):
 
 def plot_history(history:dict):
     for label, data in history.items():
-        plt.plot(np.arange(0, len(data)), data)
+        plt.scatter(np.arange(0, len(data)), data)
         plt.title(f'label: {label}')
+        plt.savefig(f'stats_{label}.pdf')
         plt.show()
 
 def convert_to_numbers(arr):
     converted_arr = []
     map_symbol = {
-        '.': 0.,
-        '#': 4.,
-        's': 3.,
-        'S': 2.,
-        'F': 1.
+        '.': 4.,
+        '#': 3.,
+        's': 2.,
+        'S': 1.,
+        'F': 0.
     }
     for line in arr:
         converted_arr.append([

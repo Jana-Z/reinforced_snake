@@ -4,8 +4,8 @@ import numpy as np
 import tensorflow as tf
 import keras
 from keras.models import Sequential
-from keras.layers import Conv2D, Dense, Flatten
-from keras.optimizers import Adam
+from keras.layers import Conv2D, Dense, Flatten, LeakyReLU
+from keras.optimizers import Adam, RMSprop
 
 class AI_player():
   def __init__(self,
@@ -14,10 +14,11 @@ class AI_player():
         num_last_frames:int,
         epsilon=1., 
         min_epsilon=0.01,
-        epsilon_decay=0.995,
+        epsilon_decay=0.8,
         gamma=0.9,
         learning_rate=0.01
     ):
+
     self.width, self.height = dims
     self.action_size = action_size  # = 3
     self.num_last_frames = num_last_frames
@@ -37,28 +38,32 @@ class AI_player():
 
     # Convolutional layers
     model.add(Conv2D(
-        16,
+        10,
         kernel_size=(3, 3),
         strides=(1, 1),
         input_shape=(self.num_last_frames, self.width, self.height), 
-        activation='relu',
+        # activation='relu',
         data_format='channels_first'
     ))
-    model.add(Conv2D(
-        32,
-        kernel_size=(3, 3),
-        strides=(1, 1),
-        activation='relu',
-        data_format='channels_first'
-    ))
+    model.add(LeakyReLU(alpha=0.1))
+    # model.add(Conv2D(
+    #     20,
+    #     kernel_size=(3, 3),
+    #     strides=(1, 1),
+    #     # activation='relu',
+    #     data_format='channels_first'
+    # ))
+    # model.add(LeakyReLU(alpha=0.1))
 
     # Dense layers
     model.add(Flatten())
-    model.add(Dense(256, activation='relu'))
-    model.add(Dense(self.action_size, activation='relu'))
+    model.add(Dense(100))
+    model.add(LeakyReLU(alpha=0.1))
+    model.add(Dense(self.action_size))
 
     model.summary()
-    model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
+    model.compile(RMSprop(), 'MSE')
+    # model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
 
     return model
 
@@ -77,6 +82,11 @@ class AI_player():
       move = np.random.randint(0, self.action_size)
     else:
       move = np.argmax(self.model.predict(state)[0])
+      # print(state)
+      # print(self.model.predict(state))
+      # print(move)
+      # print('-------------')
+
     return move
 
   def save_model(self, path):
@@ -122,4 +132,4 @@ class AI_player():
       self.model.fit(state, target_f, epochs=1, verbose=False)
     
     if self.epsilon > self.min_epsilon:
-      self.epsilon *= self.epsilon_decay
+      self.epsilon -= self.epsilon_decay
