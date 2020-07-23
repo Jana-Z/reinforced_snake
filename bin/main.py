@@ -1,6 +1,7 @@
 import os
 from collections import deque
 import numpy as np
+import csv
 
 from rlAgent import AI_player
 from snake import Board
@@ -84,8 +85,8 @@ def train_snake(
                 history['exploration'].append(ai_player.epsilon)
 
                 reward += -1
-            # else:
-            #     reward = reward+0.05 if headed_towards_fruit else reward-0.05
+            else:
+                reward = reward+0.05 if headed_towards_fruit else reward-0.05
 
             # total_reward = reward
 
@@ -99,15 +100,21 @@ def train_snake(
         ai_player.replay(400)
 
         # Save every 1000 episodes
-        if e%100 == 0:
+        if e%10 == 0:
             ai_player.save_model('./model')
             print('saving the model...')
+            print('saving the history to csv file...')
+            with open('./hist.csv', 'w') as f:
+                w = csv.DictWriter(f, history.keys())
+                w.writeheader()
+                w.writerow(history)
+
 
     return history
 
 if __name__=='__main__':
 
-    hist = train_snake(show_pygame=False, episodes=30000)
+    hist = train_snake(show_pygame=False, episodes=20000, num_last_frames=4)
     plot_history(hist)
-    BOARD.set_num_last_frames(4)
-    # load_show_agent('./model', BOARD, 5)
+    # BOARD.set_num_last_frames(1)
+    load_show_agent('./model', BOARD, 5)

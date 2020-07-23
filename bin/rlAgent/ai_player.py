@@ -81,11 +81,13 @@ class AI_player():
     if np.random.rand() < self.epsilon:
       move = np.random.randint(0, self.action_size)
     else:
+
+      print(state.shape)
       move = np.argmax(self.model.predict(state)[0])
-      # print(state)
-      # print(self.model.predict(state))
-      # print(move)
-      # print('-------------')
+      
+      print(self.model.predict(state))
+      print(move)
+      print('-------------')
 
     return move
 
@@ -101,6 +103,7 @@ class AI_player():
     ''' Sets self.model to a model at the given path.
     '''
     self.model = keras.models.load_model(path)
+    self.model.summary()
 
   def check_model(self, path, test_input):
     ''' Compares self.model and the model at the given path.

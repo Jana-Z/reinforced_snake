@@ -11,6 +11,7 @@ def load_show_agent(path, board, num_games=1):
         Only works on mac.
     '''
     input_dims = (1, board.get_num_last_frames(), *board.get_dims()) 
+    # print(input_dims)
     ai_player = AI_player(
         board.get_dims(),
         board.get_action_size(),
@@ -42,11 +43,11 @@ def plot_history(history:dict):
 def convert_to_numbers(arr):
     converted_arr = []
     map_symbol = {
-        '.': 4.,
-        '#': 3.,
-        's': 2.,
-        'S': 1.,
-        'F': 0.
+        '.': 0.,
+        '#': 4.,
+        's': 3.,
+        'S': 2.,
+        'F': 1.
     }
     for line in arr:
         converted_arr.append([
