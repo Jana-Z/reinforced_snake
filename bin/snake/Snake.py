@@ -14,13 +14,13 @@ SNAKE_MOVES = {
 }
 
 class Snake():
-  def __init__(self, initial_position:tuple, width:int, height:int):
+  def __init__(self, initial_position:tuple, board_layout):
     self.position = [initial_position]  # head -> body -> tail
-    self.width = width
-    self.height = height
+    self.width = board_layout.shape[0]
+    self.height = board_layout.shape[1]
     self.direction = 0  # index in DIRECTIONS_ARR
 
-  def move(self, move:int, fruit_position:tuple, obstacles:list):
+  def move(self, move:int, board_layout):
     ''' Move is a number (0, 1 or 2) where
         0 is maintain direction,
         1 is turn_left
@@ -32,8 +32,8 @@ class Snake():
         new_head,
         DIRECTIONS[self.direction]))
     new_head = (new_head[0]%self.height, new_head[1]%self.width)
-    if self.is_move_possible(new_head, obstacles):
-      if new_head == fruit_position:
+    if self.is_move_possible(new_head, board_layout):
+      if board_layout[new_head] == 'F':
         self.position = [new_head] + self.position
         return {
           'game_over': False,
@@ -54,17 +54,11 @@ class Snake():
         'eat_fruit': False,
       }
           
-  def is_move_possible(self, new_head:tuple, obstacles:list):
-    if obstacles:
-        if new_head in self.position or new_head in obstacles:
-            return False
-        else:
-            return True
+  def is_move_possible(self, new_head:tuple, board_layout):
+    if board_layout[new_head] == '#' or board_layout[new_head] == 's':
+        return False
     else:
-        if new_head in self.position:
-            return False
-        else:
-            return True
+        return True
 
   def get_position(self)->list:
     return self.position

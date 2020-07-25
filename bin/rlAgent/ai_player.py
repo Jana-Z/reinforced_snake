@@ -81,13 +81,10 @@ class AI_player():
     if np.random.rand() < self.epsilon:
       move = np.random.randint(0, self.action_size)
     else:
-
-      print(state.shape)
       move = np.argmax(self.model.predict(state)[0])
-      
-      print(self.model.predict(state))
-      print(move)
-      print('-------------')
+      # print(self.model.predict(state))
+      # print(move)
+      # print('-------------')
 
     return move
 
